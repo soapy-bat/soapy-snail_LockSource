@@ -28,14 +28,18 @@ local r = reaper
 
 -- ####### functions ####### --
 
-function main()
+function Main()
 
   r.Undo_BeginBlock()
-  
+
   r.PreventUIRefresh(1)
 
-  ToggleLockItemsInSourceLanes()
-  
+  local success = CheckPrefs()
+
+  if success then
+    ToggleLockItemsInSourceLanes()
+  end
+
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
   r.Undo_EndBlock("Toggle Lock Items in Source Lanes", -1)
@@ -47,7 +51,7 @@ end
 function ToggleLockItemsInSourceLanes()
 
   r.Main_OnCommand(40289, 0) -- Deselect all items
-  r.SelectAllMediaItems(0, 1) -- Select all items
+  r.SelectAllMediaItems(0, true) -- Select all items
 
   for i = 0, r.CountSelectedMediaItems(0) - 1 do
 
@@ -75,6 +79,54 @@ function ToggleLockItemsInSourceLanes()
 
 end
 
+---------------------------------------------------------
+
+function CheckPrefs()
+
+  local rippleLockMode = r.SNM_GetIntConfigVar("ripplelockmode", 0)
+
+  if rippleLockMode == 0 then
+
+    local userInput = r.ShowMessageBox("Your REAPER Preferences are set to LOCKED ITEMS INTERRUPT RIPPLE, a setting that prevents this script from working as intended. \n \nClick YES if you want to change this setting so that the script will work next time. \n \nClick NO if you want to change this setting yourself by going to 'Preferences' -> 'Editing Behavior' -> 'Locked item ripple editing behavior'.", 
+    "Warning: Preferences not compatible", 4)
+    
+    if userInput == 6 then
+      r.SNM_SetIntConfigVar("ripplelockmode", 2)
+      return true
+    end
+
+    return false
+
+  elseif rippleLockMode == 1 then
+
+    local userInput = r.ShowMessageBox("Your REAPER Preferences are set to LOCKED ITEMS INTERRUPT RIPPLE PER-TRACK, a setting that prevents this script from working as intended. \n \nClick YES if you want to change this setting so that the script will work next time. \n \nClick NO if you want to change this setting yourself by going to 'Preferences' -> 'Editing Behavior' -> 'Locked item ripple editing behavior'.", 
+    "Warning: Preferences not compatible", 4)
+    
+    if userInput == 6 then
+      r.SNM_SetIntConfigVar("ripplelockmode", 2)
+      return true
+    end
+
+    return false
+
+  elseif rippleLockMode == 3 then
+
+    local userInput = r.ShowMessageBox("Your REAPER Preferences are set to LOCKED ITEMS ARE AFFECTED BY RIPPLE (LOCK IGNORED), a setting that prevents this script from working as intended. \n \nClick YES if you want to change this setting so that the script will work next time. \n \nClick NO if you want to change this setting yourself by going to 'Preferences' -> 'Editing Behavior' -> 'Locked item ripple editing behavior'.", 
+    "Warning: Preferences not compatible", 4)
+    
+    if userInput == 6 then
+      r.SNM_SetIntConfigVar("ripplelockmode", 2)
+      return true
+    end
+
+    return false
+
+  else
+    return true
+  end
+
+end
+
 -- ####### code execution starts here ####### --
 
-main()
+Main()
